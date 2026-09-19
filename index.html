@@ -2,12 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, intial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile</title>
     <link rel="stylesheet" href="style.css">
   </head>
+
   <body>
     <h1>My GraphQL Profile</h1>
+
+    <form id="login-form">
+      <input id="username" type="text" placeholder="Username or email">
+      <input id="password" type="password" placeholder="Password">
+      <button type="submit">Login</button>
+    </form>
+    <h2 id="profile"></h2>
+    <p id="name"></p>
+
     <script src="script.js"></script>
   </body>
 </html>
