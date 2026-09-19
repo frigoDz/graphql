@@ -59,7 +59,25 @@ async function getUser() {
   }
 
   const recentTransactions = await getRecentTransactions(token)
-  drawXPPoint(recentTransactions[0])
+
+  const xpTransactions = recentTransactions.filter(transaction => transaction.type === "xp")
+  const maxXP = Math.max(...xpTransactions.map(transaction => transaction.amount))
+  const dates = xpTransactions.map(transaction => new Date(transaction.createdAt))
+  const firstDate = new Date(Math.min(...dates))
+  const lastDate = new Date(Math.max(...dates))
+
+  let previousPoint = null
+  for (let i = 0; i < xpTransactions.length; i++) {
+    previousPoint = drawXPPoint(
+      xpTransactions[i],
+      i,
+      xpTransactions.length,
+      maxXP,
+      previousPoint,
+      firstDate,
+      lastDate
+    )
+  }
   
   document.querySelector("#xp").textContent= `XP: ${xp}`
   document.querySelector("#profile").textContent = user.login
@@ -124,7 +142,7 @@ document.querySelector("#logout").addEventListener("click", () => {
   location.reload()
 })
 
-function drawXPPoint(transaction, index, total) {
+function drawXPPoint(transaction, index, total, maxXP, previousPoint, firstDate, lastDate) {
   const chart = document.querySelector("#xp-chart")
 
   const point = document.createElementNS(
@@ -132,12 +150,35 @@ function drawXPPoint(transaction, index, total) {
     "circle"
   )
 
-  const x = 50 + index * (500 / (total - 1))
-  const y = 250 - transaction.amount / 10
+  const date = new Date(transaction.createdAt)
+
+  const range = lastDate - firstDate
+  const x = range === 0
+    ? 50
+    : 50 + ((date - firstDate) / range) * 500
+
+  const y = 250 - (transaction.amount / maxXP) * 220
 
   point.setAttribute("cx", x)
   point.setAttribute("cy", y)
   point.setAttribute("r", 5)
 
   chart.appendChild(point)
+
+  if (previousPoint) {
+    const line = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    )
+
+    line.setAttribute("x1", previousPoint.x)
+    line.setAttribute("y1", previousPoint.y)
+    line.setAttribute("x2", x)
+    line.setAttribute("y2", y)
+    line.setAttribute("stroke", "black")
+
+    chart.appendChild(line)
+  }
+
+  return { x, y }
 }

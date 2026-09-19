@@ -23,7 +23,12 @@
     <h3>Recent activity</h3>
     <ul id="transactions"></ul>
     <h3>XP over time</h3>
-    <svg id="xp-chart" viewBox="0 0 600 300"></svg>
+    <svg id="xp-chart" viewBox="0 0 600 300">
+      <text x="300" y="290">Time</text>
+      <text x="10" y="30">XP</text>
+      <line x1="50" y1="250" x2="550" y2="250" stroke="black"></line>
+      <line x1="50" y1="30" x2="50" y2="250" stroke="black"></line>
+    </svg>
 
     <script src="script.js"></script>
   </body>
