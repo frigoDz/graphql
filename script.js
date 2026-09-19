@@ -41,6 +41,7 @@ async function getUser() {
           id
           amount
           type
+          createdAt
         }
       }
     }
@@ -50,11 +51,46 @@ async function getUser() {
 
   const user = data.data.user[0]
 
-  document.querySelector("#profile").textContent = user.login
-  document.querySelector("#name").textContent =
-    `${user.firstName} ${user.lastName}`
+  let xp = 0
+  for(const transaction of user.transactions) {
+    if(transaction.type === "xp") {
+      xp += transaction.amount
+    }
+  }
 
-  console.log(user.transactions)
+  const recentTransactions = await getRecentTransactions(token)
+  drawXPPoint(recentTransactions[0])
+  
+  document.querySelector("#xp").textContent= `XP: ${xp}`
+  document.querySelector("#profile").textContent = user.login
+  document.querySelector("#name").textContent = `${user.firstName} ${user.lastName}`
+  
+  const list = document.querySelector("#transactions")
+
+  for (const transaction of recentTransactions) {
+    const item = document.createElement("li")
+    item.textContent = `${transaction.type}: ${transaction.amount}`
+    list.appendChild(item)
+  }
+}
+
+async function getRecentTransactions(token) {
+  const query = `
+    {
+      user {
+        transactions(limit: 10) {
+          id
+          amount
+          type
+          createdAt
+        }
+      }
+    }
+  `
+
+  const data = await queryGraphQL(query, token)
+
+  return data.data.user[0].transactions
 }
 
 const form = document.querySelector("#login-form")
@@ -64,10 +100,44 @@ form.addEventListener("submit", async event => {
 
   const username = document.querySelector("#username").value
   const password = document.querySelector("#password").value
+  const error = document.querySelector("#error")
 
-  const token = await login(username, password)
+  error.textContent = ""
 
-  sessionStorage.setItem("token", token)
+  try {
+    const token = await login(username, password)
 
-  getUser()
+    if (!token) {
+      throw new Error("Invalid username or password")
+    }
+
+    sessionStorage.setItem("token", token)
+
+    await getUser()
+  } catch (err) {
+    error.textContent = "Login failed"
+  }
 })
+
+document.querySelector("#logout").addEventListener("click", () => {
+  sessionStorage.removeItem("token")
+  location.reload()
+})
+
+function drawXPPoint(transaction, index, total) {
+  const chart = document.querySelector("#xp-chart")
+
+  const point = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle"
+  )
+
+  const x = 50 + index * (500 / (total - 1))
+  const y = 250 - transaction.amount / 10
+
+  point.setAttribute("cx", x)
+  point.setAttribute("cy", y)
+  point.setAttribute("r", 5)
+
+  chart.appendChild(point)
+}
