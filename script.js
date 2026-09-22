@@ -52,37 +52,20 @@ async function getUser() {
   const user = data.data.user[0]
 
   let xp = 0
-  for(const transaction of user.transactions) {
-    if(transaction.type === "xp") {
+
+  for (const transaction of user.transactions) {
+    if (transaction.type === "xp") {
       xp += transaction.amount
     }
   }
 
   const recentTransactions = await getRecentTransactions(token)
 
-  const xpTransactions = recentTransactions.filter(transaction => transaction.type === "xp")
-  const maxXP = Math.max(...xpTransactions.map(transaction => transaction.amount))
-  const dates = xpTransactions.map(transaction => new Date(transaction.createdAt))
-  const firstDate = new Date(Math.min(...dates))
-  const lastDate = new Date(Math.max(...dates))
-
-  let previousPoint = null
-  for (let i = 0; i < xpTransactions.length; i++) {
-    previousPoint = drawXPPoint(
-      xpTransactions[i],
-      i,
-      xpTransactions.length,
-      maxXP,
-      previousPoint,
-      firstDate,
-      lastDate
-    )
-  }
-  
-  document.querySelector("#xp").textContent= `XP: ${xp}`
   document.querySelector("#profile").textContent = user.login
-  document.querySelector("#name").textContent = `${user.firstName} ${user.lastName}`
-  
+  document.querySelector("#name").textContent =
+    `${user.firstName} ${user.lastName}`
+  document.querySelector("#xp").textContent = `XP: ${xp}`
+
   const list = document.querySelector("#transactions")
 
   for (const transaction of recentTransactions) {
@@ -90,6 +73,8 @@ async function getUser() {
     item.textContent = `${transaction.type}: ${transaction.amount}`
     list.appendChild(item)
   }
+
+  drawXPChart(user.transactions)
 }
 
 async function getRecentTransactions(token) {
@@ -141,6 +126,155 @@ document.querySelector("#logout").addEventListener("click", () => {
   sessionStorage.removeItem("token")
   location.reload()
 })
+
+function drawXPLabels(maxXP) {
+  const chart = document.querySelector("#xp-chart")
+
+  for (let i = 0; i <= 4; i++) {
+    const value = Math.round((maxXP / 4) * i)
+    const y = 250 - (i / 4) * 220
+
+    const label = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    )
+
+    label.setAttribute("x", 5)
+    label.setAttribute("y", y)
+    label.textContent = value
+
+    chart.appendChild(label)
+  }
+}
+
+function drawDateLabels(firstDate, lastDate) {
+  const chart = document.querySelector("#xp-chart")
+
+  const start = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "text"
+  )
+
+  start.setAttribute("x", 50)
+  start.setAttribute("y", 270)
+  start.textContent = firstDate.toLocaleDateString()
+
+  chart.appendChild(start)
+
+  const end = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "text"
+  )
+
+  end.setAttribute("x", 500)
+  end.setAttribute("y", 270)
+  end.textContent = lastDate.toLocaleDateString()
+
+  chart.appendChild(end)
+}
+
+function drawGrid() {
+  const chart = document.querySelector("#xp-chart")
+
+  for (let i = 1; i < 4; i++) {
+    const y = 250 - (i / 4) * 220
+
+    const line = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    )
+
+    line.setAttribute("x1", 50)
+    line.setAttribute("y1", y)
+    line.setAttribute("x2", 550)
+    line.setAttribute("y2", y)
+    line.setAttribute("stroke", "black")
+    line.setAttribute("stroke-dasharray", "4")
+
+    chart.appendChild(line)
+  }
+}
+
+function drawXPChart(transactions) {
+  const xpTransactions = transactions
+    .filter(transaction => transaction.type === "xp")
+    .sort((a, b) => {
+      return new Date(a.createdAt) - new Date(b.createdAt)
+    })
+
+  if (xpTransactions.length === 0) {
+    return
+  }
+
+  let totalXP = 0
+
+  const points = xpTransactions.map(transaction => {
+    totalXP += transaction.amount
+
+    return {
+      ...transaction,
+      totalXP
+    }
+  })
+
+  const maxXP = poinfunction drawXPChart(transactions) {
+  const chart = document.querySelector("#xp-chart")
+
+  chart.innerHTML = `
+    <text x="250" y="20">XP Over Time</text>
+
+    <line x1="50" y1="250" x2="550" y2="250" stroke="black"></line>
+    <line x1="50" y1="30" x2="50" y2="250" stroke="black"></line>
+  `
+
+  const xpTransactions = transactions
+    .filter(transaction => transaction.type === "xp")
+    .sort((a, b) => {
+      return new Date(a.createdAt) - new Date(b.createdAt)
+    })
+
+  if (xpTransactions.length === 0) {
+    return
+  }
+
+  let totalXP = 0
+
+  const points = xpTransactions.map(transaction => {
+    totalXP += transaction.amount
+
+    return {
+      ...transaction,
+      totalXP
+    }
+  })
+
+  const maxXP = points[points.length - 1].totalXP
+  drawGrid()
+  drawXPLabels(maxXP)
+
+  const dates = points.map(
+    transaction => new Date(transaction.createdAt)
+  )
+
+  const firstDate = new Date(Math.min(...dates))
+  const lastDate = new Date(Math.max(...dates))
+
+  drawDateLabels(firstDate, lastDate)
+
+  let previousPoint = null
+
+  for (let i = 0; i < points.length; i++) {
+    previousPoint = drawXPPoint(
+      points[i],
+      i,
+      points.length,
+      maxXP,
+      previousPoint,
+      firstDate,
+      lastDate
+    )
+  }
+}
 
 function drawXPPoint(transaction, index, total, maxXP, previousPoint, firstDate, lastDate) {
   const chart = document.querySelector("#xp-chart")
