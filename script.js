@@ -65,6 +65,7 @@ async function getUser() {
   document.querySelector("#name").textContent =
     `${user.firstName} ${user.lastName}`
   document.querySelector("#xp").textContent = `XP: ${xp}`
+  document.querySelector("#transactions-count").textContent = `Transactions: ${user.transactions.length}`
 
   const list = document.querySelector("#transactions")
 
@@ -75,6 +76,7 @@ async function getUser() {
   }
 
   drawXPChart(user.transactions)
+  drawTypeChart(user.transactions)
 }
 
 async function getRecentTransactions(token) {
@@ -192,6 +194,76 @@ function drawGrid() {
     line.setAttribute("stroke-dasharray", "4")
 
     chart.appendChild(line)
+  }
+}
+
+function drawTypeChart(transactions) {
+  const chart = document.querySelector("#type-chart")
+
+  chart.innerHTML = `
+    <text x="230" y="20">Transaction Types</text>
+
+    <line x1="50" y1="250" x2="550" y2="250" stroke="black"></line>
+    <line x1="50" y1="30" x2="50" y2="250" stroke="black"></line>
+  `
+
+  const counts = {}
+
+  for (const transaction of transactions) {
+    if (counts[transaction.type]) {
+      counts[transaction.type]++
+    } else {
+      counts[transaction.type] = 1
+    }
+  }
+
+  const types = Object.keys(counts)
+  const maxCount = Math.max(...Object.values(counts))
+
+  for (let i = 0; i < types.length; i++) {
+    const type = types[i]
+    const count = counts[type]
+
+    const height = (count / maxCount) * 200
+    const x = 80 + i * 100
+    const y = 250 - height
+
+    const bar = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "rect"
+    )
+
+    bar.setAttribute("x", x)
+    bar.setAttribute("y", y)
+    bar.setAttribute("width", 50)
+    bar.setAttribute("height", height)
+    bar.setAttribute("fill", "black")
+
+    chart.appendChild(bar)
+
+    const value = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    )
+
+    value.setAttribute("x", x + 25)
+    value.setAttribute("y", y - 5)
+    value.setAttribute("text-anchor", "middle")
+    value.textContent = count
+
+    chart.appendChild(value)
+
+    const label = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    )
+
+    label.setAttribute("x", x + 25)
+    label.setAttribute("y", 270)
+    label.setAttribute("text-anchor", "middle")
+    label.textContent = type
+
+    chart.appendChild(label)
   }
 }
 
