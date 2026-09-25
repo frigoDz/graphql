@@ -1,6 +1,8 @@
 const API_URL = "https://learn.zone01oujda.ma/api/graphql-engine/v1/graphql"
 const LOGIN_URL = "https://learn.zone01oujda.ma/api/auth/signin"
 
+document.querySelector("#logout").hidden = true
+
 async function login(username, password) {
   const credentials = btoa(`${username}:${password}`)
 
@@ -77,6 +79,9 @@ async function getUser() {
 
   drawXPChart(user.transactions)
   drawTypeChart(user.transactions)
+  document.querySelector("#login-form").hidden = true
+  document.querySelector("#logout").hidden = false
+  document.querySelector("#profile-section").hidden = false
 }
 
 async function getRecentTransactions(token) {
