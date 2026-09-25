@@ -268,28 +268,6 @@ function drawTypeChart(transactions) {
 }
 
 function drawXPChart(transactions) {
-  const xpTransactions = transactions
-    .filter(transaction => transaction.type === "xp")
-    .sort((a, b) => {
-      return new Date(a.createdAt) - new Date(b.createdAt)
-    })
-
-  if (xpTransactions.length === 0) {
-    return
-  }
-
-  let totalXP = 0
-
-  const points = xpTransactions.map(transaction => {
-    totalXP += transaction.amount
-
-    return {
-      ...transaction,
-      totalXP
-    }
-  })
-
-  const maxXP = poinfunction drawXPChart(transactions) {
   const chart = document.querySelector("#xp-chart")
 
   chart.innerHTML = `
@@ -363,7 +341,7 @@ function drawXPPoint(transaction, index, total, maxXP, previousPoint, firstDate,
     ? 50
     : 50 + ((date - firstDate) / range) * 500
 
-  const y = 250 - (transaction.amount / maxXP) * 220
+  const y = 250 - (transaction.totalXP / maxXP) * 220
 
   point.setAttribute("cx", x)
   point.setAttribute("cy", y)
