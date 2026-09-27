@@ -1,38 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Profile</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
-
   <body>
-    <h1>My GraphQL Profile</h1>
+    <header>
+      <b>GraphQL</b>
+      <span id="header-username"></span>
+      <button id="logout" hidden>Logout</button>
+    </header>
 
     <form id="login-form">
-      <input id="username" type="text" placeholder="Username or email">
-      <input id="password" type="password" placeholder="Password">
+      <input id="username" type="text" placeholder="Username or email" />
+      <input id="password" type="password" placeholder="Password" />
       <button type="submit">Login</button>
       <p id="error"></p>
     </form>
-    <button id="logout">Logout</button>
-    <h2 id="profile"></h2>
-    <p id="name"></p>
-    <p id="xp"></p>
-    <p id="transactions-count"></p>
-    <h3>Recent activity</h3>
-    <ul id="transactions"></ul>
-    <h3>XP over time</h3>
-    <svg id="xp-chart" viewBox="0 0 600 300">
-      <text x="300" y="290">Time</text>
-      <text x="10" y="30">XP</text>
-      <line x1="50" y1="250" x2="550" y2="250" stroke="black"></line>
-      <line x1="50" y1="30" x2="50" y2="250" stroke="black"></line>
-    </svg>
-    <h3>Transaction Types</h3>
-    <svg id="type-chart" viewBox="0 0 600 300"></svg>
 
+    <section id="profile-section" hidden>
+      <div id="top">
+        <div>
+          <div id="me">
+            <div id="card">
+              <img id="profile-picture" alt="avatar" />
+              <p><span id="name"></span><br />@<span id="login"></span></p>
+            </div> 
+            <div id="stats">
+              <p>Level: <span id="level"></span></p>
+              <p>Audit Ratio: <span id="audit-ratio"></span></p>
+              <p>Total XP: <span id="xp"></span></p>
+              <p>Member Since: <span id="member-since"></span></p>
+            </div>
+          </div>
+          <div id="ani"><span>validate this project</span></div>
+        </div>
+        <svg id="xp-chart" viewBox="0 0 600 300"></svg>
+      </div>
+      <svg id="skills-chart" viewBox="0 0 600 300"></svg>
+    </section>
     <script src="script.js"></script>
   </body>
 </html>
