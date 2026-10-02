@@ -91,9 +91,8 @@ async function getUser() {
   document.querySelector("#login").textContent = user.login
   document.querySelector("#profile-picture").src = user.attrs?.avatarUrl || ""
   document.querySelector("#level").textContent = user.events[0]?.level ?? 0
-  document.querySelector("#xp").textContent = `${Math.floor(totalXP / 1000)}kb`
-  document.querySelector("#audit-ratio").textContent =
-    user.auditRatio.toFixed(2)
+  document.querySelector("#xp").textContent = `${Math.round(totalXP / 1000)}kb`
+  document.querySelector("#audit-ratio").textContent = user.auditRatio.toFixed(1)
   document.querySelector("#member-since").textContent = new Date(
     user.createdAt,
   ).toLocaleDateString()
@@ -138,7 +137,7 @@ function drawXPChart(xpTransactions) {
   const chart = document.querySelector("#xp-chart")
 
   chart.innerHTML = `
-    <text x="280" y="20">XP over time</text>
+    <text x="280" y="20" font-weight="bold">XP over time</text>
     <line x1="50" y1="280" x2="550" y2="280" stroke="black"></line>
     <line x1="50" y1="30" x2="50" y2="280" stroke="black"></line>
   `
@@ -151,25 +150,21 @@ function drawXPChart(xpTransactions) {
       running += t.amount
       return {
         total: running,
-        amount: t.amount / 1000,
+        amount: Math.round(t.amount / 1000),
         name: t.object?.name || "unknown project",
       }
     })
     .slice(Math.min(8, xpTransactions.length - 1))
 
   const currentXP = points[points.length - 1].total
-
   const scaleMax = Math.ceil((currentXP * 1.15) / 100) * 100
 
   drawGrid(chart, currentXP, scaleMax)
 
   let prev = null
   for (const [i, point] of points.entries()) {
-    const x =
-      PLOT.left +
-      (i / Math.max(points.length - 1, 1)) * (PLOT.right - PLOT.left)
+    const x = PLOT.left + (i / Math.max(points.length - 1, 1)) * (PLOT.right - PLOT.left)
     const y = PLOT.bottom - (point.total / scaleMax) * (PLOT.bottom - PLOT.top)
-
     const circle = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "circle",
@@ -222,8 +217,8 @@ function drawSkillsChart(skills) {
   const width = Math.max(600, 70 * names.length)
   chart.setAttribute("viewBox", `0 0 ${width} 450`)
   chart.setAttribute("width", width)
-  chart.setAttribute("height", 450)
-  chart.innerHTML = `<text x="${width / 2}" y="20" text-anchor="middle">Skills</text>`
+  chart.setAttribute("height", 500)
+  chart.innerHTML = `<text x="${width / 2}" y="20" font-weight="bold" text-anchor="middle">Skills</text>`
 
   if (names.length === 0) return
 
@@ -253,13 +248,18 @@ function drawSkillsChart(skills) {
     value.setAttribute("text-anchor", "middle")
     value.textContent = amount
     chart.appendChild(value)
-
-    const label = document.createElementNS("http://www.w3.org/2000/svg", "text")
-    label.setAttribute("x", x + barWidth / 2)
-    label.setAttribute("y", bottom + 16)
-    label.setAttribute("text-anchor", "middle")
+    const label = document.createElementNS("http://www.w3.org/2000/svg","text",)
+    const labelX = x + barWidth / 2
+    const labelY = bottom + 20
+    label.setAttribute("x", labelX)
+    label.setAttribute("y", labelY)
+    label.setAttribute("text-anchor", "start")
+    label.setAttribute("font-size", "12")
+    label.setAttribute("font-weight", "bold")
+    label.setAttribute("transform",`rotate(45 ${labelX} ${labelY})`)
     label.textContent = name
     chart.appendChild(label)
+
   })
 }
 function attachLoginForm() {

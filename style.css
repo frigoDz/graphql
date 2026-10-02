@@ -20,8 +20,7 @@ input:focus, button:focus { outline: 2px solid #2a7a2a; outline-offset: 2px; }
 #card p { margin: 10px 0 0; text-align: center; }
 #name { display: block; font-size: 18px; font-weight: bold; }
 #login { color: #666; font-size: 14px; }
-#profile-picture { border-radius: 50%; }
-#ani { position: relative; height: 73px; overflow: hidden; border: 1px solid #555; border-radius: 4px; background: #fff; }
+#ani { background-image: url("floor.jpeg"); position: relative; height: 73px; overflow: hidden; border: 1px solid #555; border-radius: 4px;}
 #ani img { position: absolute; width: 60px; left: -40px; bottom: 6px; animation: walk 6s linear infinite; }
 #stats { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 #stats p { margin: 0; padding: 10px; flex: 1; display: flex; align-items: center; }
@@ -32,7 +31,7 @@ input:focus, button:focus { outline: 2px solid #2a7a2a; outline-offset: 2px; }
 svg { display: block; width: 100%; height: auto; }
 #xp-chart {min-height: 303px;}
 
-#profile-picture { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #eee; }
+#profile-picture { border-radius:20%; display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #eee; }
 @keyframes walk {
   0%   { left: -40px; transform: scaleX(1)  translateY(0); }
   24%  { transform: scaleX(1)  translateY(-6px); }
