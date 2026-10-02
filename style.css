@@ -2,7 +2,7 @@ body { font-family: "Times New Roman", serif; max-width: 1000px; margin: 30px au
 
 header { display: flex; align-items: center; gap: 10px; border: 2px solid #000; padding: 10px 14px; margin-bottom: 20px; justify-content: center;}
 body:has(#profile-section:not([hidden])) header {justify-content: space-between;}
-#header-username { font-weight: bold; color: #2a7a2a; }
+#header-username {font-weight: bold; color: #2a7a2a; }
 #login-form[hidden] { display: none;}
 #login-form { max-width: 280px; margin: 80px auto 0; display: flex; flex-direction: column; gap: 15px; border: 5px solid #555; padding: 24px; background: #fafafa;}
 #login-form input, #login-form button {box-sizing: border-box;}
@@ -16,10 +16,10 @@ button:hover { background: #ddd; }
 #me { display: flex; gap: 10px; margin-bottom: 10px; }
 #card { width: 150px; }
 #card p { margin: 8px 0 0; }
-#ani {position: relative; height: 73px; overflow: hidden; border: 5px solid black}
-#ani span { font-weight: bold; font-size: 20px; font-family: monospace; position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.351); animation: x 2.4s ease-in-out infinite;}
-#stats { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-#stats p { margin: 0; padding: 10px; }
+#ani { position: relative; height: 73px; overflow: hidden; border: 5px solid black}
+#ani img { position: absolute; width: 70px; left: -40px; bottom: 6px; animation: walk 6s linear infinite; }
+#stats { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+#stats p { margin: 0; padding: 10px; flex: 1; display: flex; align-items: center; }
 #card, #stats p, svg { border: 1px solid #555; background: #fafafa; }
 #card { padding: 8px; }
 
@@ -27,11 +27,12 @@ svg { display: block; width: 100%; height: auto; }
 #xp-chart {min-height: 303px;}
 
 #profile-picture { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #eee; }
-@keyframes x {
-  0% {
-    transform: translate(-180px, -50%);
-  }
-  100%{
-    transform: translate(450px, -50%);
-  }
+@keyframes walk {
+  0%   { left: -40px; transform: scaleX(1)  translateY(0); }
+  24%  { transform: scaleX(1)  translateY(-6px); }
+  48%  { left: 100%;  transform: scaleX(1)  translateY(0); }
+  50%  { left: 100%;  transform: scaleX(-1) translateY(0); }
+  74%  { transform: scaleX(-1) translateY(-6px); }
+  98%  { left: -40px; transform: scaleX(-1) translateY(0); }
+  100% { left: -40px; transform: scaleX(1)  translateY(0); }
 }

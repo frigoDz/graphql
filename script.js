@@ -219,47 +219,49 @@ function drawSkillsChart(skills) {
   const chart = document.querySelector("#skills-chart")
   const names = Object.keys(skills).sort((a, b) => skills[b] - skills[a])
 
-  const height = 60 + names.length * 35
-  chart.setAttribute("viewBox", `0 0 600 ${height}`)
-  chart.setAttribute("width", 600)
-  chart.setAttribute("height", height)
-  chart.innerHTML = `<text x="250" y="20">Skills</text>`
+  const width = Math.max(600, 70 * names.length)
+  chart.setAttribute("viewBox", `0 0 ${width} 450`)
+  chart.setAttribute("width", width)
+  chart.setAttribute("height", 450)
+  chart.innerHTML = `<text x="${width / 2}" y="20" text-anchor="middle">Skills</text>`
 
   if (names.length === 0) return
 
+  const top = 40
+  const bottom = 400
+  const maxAmount = Math.max(...names.map(n => skills[n]))
+
   names.forEach((name, i) => {
     const amount = skills[name]
-    const y = 45 + i * 35
-    const width = amount * 4
-
-    const label = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "text",
-    )
-    label.setAttribute("x", 10)
-    label.setAttribute("y", y + 15)
-    label.textContent = name
-    chart.appendChild(label)
+    const x = 35 + i * (width - 60) / names.length
+    const barWidth = Math.min(40, (width - 60) / names.length - 10)
+    const barHeight = (amount / maxAmount) * (bottom - top)
+    const y = bottom - barHeight
 
     const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-    bar.setAttribute("x", 130)
+    bar.setAttribute("x", x)
     bar.setAttribute("y", y)
-    bar.setAttribute("width", width)
-    bar.setAttribute("height", 20)
-    bar.setAttribute("fill", "#2a7a2a")
+    bar.setAttribute("width", barWidth)
+    bar.setAttribute("height", barHeight)
+    bar.setAttribute("fill", "green")
+    bar.setAttribute("stroke", "black")
     chart.appendChild(bar)
 
-    const value = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "text",
-    )
-    value.setAttribute("x", 140 + width)
-    value.setAttribute("y", y + 15)
-    value.textContent = `${amount}%`
+    const value = document.createElementNS("http://www.w3.org/2000/svg", "text")
+    value.setAttribute("x", x + barWidth / 2)
+    value.setAttribute("y", y - 6)
+    value.setAttribute("text-anchor", "middle")
+    value.textContent = amount
     chart.appendChild(value)
+
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text")
+    label.setAttribute("x", x + barWidth / 2)
+    label.setAttribute("y", bottom + 16)
+    label.setAttribute("text-anchor", "middle")
+    label.textContent = name
+    chart.appendChild(label)
   })
 }
-
 function attachLoginForm() {
   document.querySelector("#login-form").addEventListener("submit", async event => {
     event.preventDefault()
