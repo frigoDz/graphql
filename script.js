@@ -57,7 +57,7 @@ async function getUser() {
         events(where: { eventId: { _eq: 41 } }) {
           level
         }
-        transactions(where: { eventId: { _eq: 41 } }) {
+        transactions(where: { originEventId: { _eq: 41 } }) {
           amount
           type
           createdAt
@@ -72,12 +72,8 @@ async function getUser() {
   const data = await queryGraphQL(query, token)
   const user = data.data.user[0]
 
-  const xpTransactions = user.transactions
-    .filter((t) => t.type === "xp")
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-
+  const xpTransactions = user.transactions.filter((t) => t.type === "xp").sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
   const totalXP = xpTransactions.reduce((sum, t) => sum + t.amount, 0)
-
   const skills = {}
   for (const t of user.transactions) {
     if (!t.type.startsWith("skill_")) continue
@@ -93,13 +89,10 @@ async function getUser() {
   document.querySelector("#level").textContent = user.events[0]?.level ?? 0
   document.querySelector("#xp").textContent = `${Math.round(totalXP / 1000)}kb`
   document.querySelector("#audit-ratio").textContent = user.auditRatio.toFixed(1)
-  document.querySelector("#member-since").textContent = new Date(
-    user.createdAt,
-  ).toLocaleDateString()
+  document.querySelector("#member-since").textContent = new Date(user.createdAt,).toLocaleDateString()
 
   drawXPChart(xpTransactions)
   drawSkillsChart(skills)
-
   document.querySelector("#login-form")?.remove()
   document.querySelector("#logout").hidden = false
   document.querySelector("#profile-section").hidden = false
@@ -109,7 +102,7 @@ const PLOT = { left: 55, right: 545, top: 40, bottom: 280 }
 
 function drawGrid(chart, currentXP, scaleMax) {
   for (let i = 0; i <= 4; i++) {
-    const value = (currentXP / 4) * i
+    const value = (scaleMax / 4) * i
     const y = PLOT.bottom - (value / scaleMax) * (PLOT.bottom - PLOT.top)
 
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line")
@@ -120,15 +113,12 @@ function drawGrid(chart, currentXP, scaleMax) {
     line.setAttribute("stroke", "#999")
     chart.appendChild(line)
 
-    const label = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "text",
-    )
+    const label = document.createElementNS("http://www.w3.org/2000/svg","text",)
     label.setAttribute("x", 45)
     label.setAttribute("y", y + 4)
     label.setAttribute("text-anchor", "end")
     label.setAttribute("font-size", 11)
-    label.textContent = `${Math.floor(value / 1000)}kb`
+    label.textContent = `${Math.round(value / 1000)}kb`
     chart.appendChild(label)
   }
 }
@@ -154,10 +144,9 @@ function drawXPChart(xpTransactions) {
         name: t.object?.name || "unknown project",
       }
     })
-    .slice(Math.min(8, xpTransactions.length - 1))
-
+  
   const currentXP = points[points.length - 1].total
-  const scaleMax = Math.ceil((currentXP * 1.15) / 100) * 100
+  const scaleMax = currentXP
 
   drawGrid(chart, currentXP, scaleMax)
 
@@ -165,27 +154,18 @@ function drawXPChart(xpTransactions) {
   for (const [i, point] of points.entries()) {
     const x = PLOT.left + (i / Math.max(points.length - 1, 1)) * (PLOT.right - PLOT.left)
     const y = PLOT.bottom - (point.total / scaleMax) * (PLOT.bottom - PLOT.top)
-    const circle = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    )
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle",)
     circle.setAttribute("cx", x)
     circle.setAttribute("cy", y)
     circle.setAttribute("r", 4)
     circle.setAttribute("fill", "#c00")
 
-    const title = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "title",
-    )
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title",)
     title.textContent = `${point.name} (+${point.amount} kB)`
     circle.appendChild(title)
     chart.appendChild(circle)
 
-    const core = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    )
+    const core = document.createElementNS("http://www.w3.org/2000/svg", "circle",)
     core.setAttribute("cx", x)
     core.setAttribute("cy", y)
     core.setAttribute("r", 2)
@@ -194,10 +174,7 @@ function drawXPChart(xpTransactions) {
     chart.appendChild(core)
 
     if (prev) {
-      const line = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line",
-      )
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line",)
       line.setAttribute("x1", prev.x)
       line.setAttribute("y1", prev.y)
       line.setAttribute("x2", x)
@@ -213,7 +190,6 @@ function drawXPChart(xpTransactions) {
 function drawSkillsChart(skills) {
   const chart = document.querySelector("#skills-chart")
   const names = Object.keys(skills).sort((a, b) => skills[b] - skills[a])
-
   const width = Math.max(600, 70 * names.length)
   chart.setAttribute("viewBox", `0 0 ${width} 450`)
   chart.setAttribute("width", width)
@@ -279,7 +255,7 @@ function attachLoginForm() {
       await getUser()
     } catch (err) {
       error.textContent = err.message
-    }
+    } 
   })
 }
 
