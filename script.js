@@ -5,18 +5,29 @@ const loginFormHTML = document.querySelector("#login-form").outerHTML
 async function login(usernameOrEmail, password) {
   const credentials = btoa(`${usernameOrEmail}:${password}`)
 
-  const response = await fetch(LOGIN_URL, {
-    method: "POST",
-    headers: { Authorization: `Basic ${credentials}` },
-  })
-
-  if (!response.ok) {
-    throw new Error("Invalid username/email or password")
+  let response
+  try {
+    response = await fetch(LOGIN_URL, {
+      method: "POST",
+      headers: { Authorization: `Basic ${credentials}` },
+    })
+  } catch {
+    throw new Error("Could not reach the server. Check your connection and try again.")
   }
 
-  return response.json()
-}
+  if (response.status === 401 || response.status === 403) {
+    throw new Error("Invalid username/email or password")
+  }
+  if (!response.ok) {
+    throw new Error(`Login failed (server error ${response.status}). Please try again.`)
+  }
 
+  try {
+    return await response.json()
+  } catch {
+    throw new Error("Login failed: unexpected response from the server. Please try again.")
+  }
+}
 async function queryGraphQL(query, token) {
   const response = await fetch(API_URL, {
     method: "POST",
@@ -72,8 +83,12 @@ async function getUser() {
   const data = await queryGraphQL(query, token)
   const user = data.data.user[0]
 
-  const xpTransactions = user.transactions.filter((t) => t.type === "xp").sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+  const xpTransactions = user.transactions
+    .filter((t) => t.type === "xp")
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+
   const totalXP = xpTransactions.reduce((sum, t) => sum + t.amount, 0)
+
   const skills = {}
   for (const t of user.transactions) {
     if (!t.type.startsWith("skill_")) continue
@@ -82,14 +97,13 @@ async function getUser() {
   }
 
   document.querySelector("#header-username").textContent = user.login
-  document.querySelector("#name").textContent =
-    `${user.firstName} ${user.lastName}`
+  document.querySelector("#name").textContent = `${user.firstName} ${user.lastName}`
   document.querySelector("#login").textContent = user.login
-  document.querySelector("#profile-picture").src = user.attrs?.avatarUrl || ""
+  document.querySelector("#profile-picture").src = user.attrs?.avatarUrl || "img/anonyme.png"
   document.querySelector("#level").textContent = user.events[0]?.level ?? 0
   document.querySelector("#xp").textContent = `${Math.round(totalXP / 1000)}kb`
-  document.querySelector("#audit-ratio").textContent = user.auditRatio.toFixed(1)
-  document.querySelector("#member-since").textContent = new Date(user.createdAt,).toLocaleDateString()
+  document.querySelector("#audit-ratio").textContent = (user.auditRatio ?? 0).toFixed(1)
+  document.querySelector("#member-since").textContent = new Date(user.createdAt).toLocaleDateString()
 
   drawXPChart(xpTransactions)
   drawSkillsChart(skills)
@@ -97,7 +111,6 @@ async function getUser() {
   document.querySelector("#logout").hidden = false
   document.querySelector("#profile-section").hidden = false
 }
-
 const PLOT = { left: 55, right: 545, top: 40, bottom: 280 }
 
 function drawGrid(chart, currentXP, scaleMax) {
@@ -132,7 +145,10 @@ function drawXPChart(xpTransactions) {
     <line x1="50" y1="30" x2="50" y2="280" stroke="black"></line>
   `
 
-  if (xpTransactions.length === 0) return
+  if (xpTransactions.length === 0) {
+    chart.innerHTML += `<text x="300" y="150" text-anchor="middle" fill="#888">No XP yet</text>`
+    return
+  }
 
   let running = 0
   const points = xpTransactions
@@ -159,10 +175,7 @@ function drawXPChart(xpTransactions) {
     circle.setAttribute("cy", y)
     circle.setAttribute("r", 4)
     circle.setAttribute("fill", "#c00")
-
-    const title = document.createElementNS("http://www.w3.org/2000/svg", "title",)
-    title.textContent = `${point.name} (+${point.amount} kB)`
-    circle.appendChild(title)
+    circle.setAttribute("pointer-events", "none")
     chart.appendChild(circle)
 
     const core = document.createElementNS("http://www.w3.org/2000/svg", "circle",)
@@ -172,6 +185,21 @@ function drawXPChart(xpTransactions) {
     core.setAttribute("fill", "black")
     core.setAttribute("pointer-events", "none")
     chart.appendChild(core)
+
+    const hitArea = document.createElementNS("http://www.w3.org/2000/svg", "circle",)
+    hitArea.setAttribute("cx", x)
+    hitArea.setAttribute("cy", y)
+    hitArea.setAttribute("r", 10)
+    hitArea.setAttribute("fill", "transparent")
+
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title",)
+    if (point.amount > 0) {
+      title.textContent = `${point.name} (+${point.amount} kB)`
+    }else {
+      title.textContent = `${point.name} (${point.amount} kB)`
+    }
+    hitArea.appendChild(title)
+    chart.appendChild(hitArea)
 
     if (prev) {
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line",)
@@ -196,7 +224,10 @@ function drawSkillsChart(skills) {
   chart.setAttribute("height", 500)
   chart.innerHTML = `<text x="${width / 2}" y="20" font-weight="bold" text-anchor="middle">Skills</text>`
 
-  if (names.length === 0) return
+  if (names.length === 0) {
+    chart.innerHTML += `<text x="${width / 2}" y="200" text-anchor="middle" fill="#888">No skills yet</text>`
+    return
+  }
 
   const top = 40
   const bottom = 400
@@ -247,6 +278,8 @@ function attachLoginForm() {
     const error = document.querySelector("#error")
     error.textContent = ""
 
+    const submitBtn = document.querySelector("#login-form button")
+    submitBtn.disabled = true
     try {
       const token = await login(username, password)
       if (!token) throw new Error("Login failed")
@@ -255,10 +288,11 @@ function attachLoginForm() {
       await getUser()
     } catch (err) {
       error.textContent = err.message
-    } 
+    } finally {
+      submitBtn.disabled = false
+    }
   })
 }
-
 attachLoginForm()
 document.querySelector("#logout").addEventListener("click", () => {
   sessionStorage.removeItem("token")
