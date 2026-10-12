@@ -68,6 +68,9 @@ async function getUser() {
         events(where: { eventId: { _eq: 41 } }) {
           level
         }
+        te : transactions (where: { eventId: { _eq: 41 }, type: {_eq: "xp"} }) {
+          amount
+        }
         transactions(where: { originEventId: { _eq: 41 } }) {
           amount
           type
@@ -87,7 +90,7 @@ async function getUser() {
     .filter((t) => t.type === "xp")
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
 
-  const totalXP = xpTransactions.reduce((sum, t) => sum + t.amount, 0)
+  const totalXP = user.te.reduce((sum, t) => sum + t.amount, 0)
 
   const skills = {}
   for (const t of user.transactions) {
