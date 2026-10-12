@@ -114,9 +114,9 @@ async function getUser() {
   document.querySelector("#logout").hidden = false
   document.querySelector("#profile-section").hidden = false
 }
-const PLOT = { left: 55, right: 545, top: 40, bottom: 280 }
+const PLOT = { left: 55, right: 545, top: 40, bottom: 350 }
 
-function drawGrid(chart, currentXP, scaleMax) {
+function drawGrid(chart, scaleMax) {
   for (let i = 0; i <= 4; i++) {
     const value = (scaleMax / 4) * i
     const y = PLOT.bottom - (value / scaleMax) * (PLOT.bottom - PLOT.top)
@@ -144,8 +144,8 @@ function drawXPChart(xpTransactions) {
 
   chart.innerHTML = `
     <text x="280" y="20" font-weight="bold">XP over time</text>
-    <line x1="50" y1="280" x2="550" y2="280" stroke="black"></line>
-    <line x1="50" y1="30" x2="50" y2="280" stroke="black"></line>
+    <line x1="50" y1="350" x2="550" y2="350" stroke="black"></line>
+    <line x1="50" y1="30" x2="50" y2="350" stroke="black"></line>
   `
 
   if (xpTransactions.length === 0) {
@@ -164,10 +164,9 @@ function drawXPChart(xpTransactions) {
       }
     })
   
-  const currentXP = points[points.length - 1].total
-  const scaleMax = currentXP
+  const scaleMax = points[points.length - 1].total
 
-  drawGrid(chart, currentXP, scaleMax)
+  drawGrid(chart, scaleMax)
 
   let prev = null
   for (const [i, point] of points.entries()) {
